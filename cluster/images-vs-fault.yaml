@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: images
+spec:
+  hosts:
+    - images
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/images
+      rewrite:
+        uri: /api/v1/images
+      route:
+        - destination:
+            host: images
+            port:
+              number: 30001
+      fault:
+        abort:
+          httpStatus: 500
+          percentage:
+            value: 10

@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: transaction
+spec:
+  hosts:
+    - transaction
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/transaction
+      rewrite:
+        uri: /api/v1/transaction
+      route:
+        - destination:
+            host: transaction
+            port:
+              number: 30002
+      fault:
+        abort:
+          httpStatus: 500
+          percentage:
+            value: 10

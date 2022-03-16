@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: logger
+  labels:
+    app: logger
+    release: c756
+spec:
+  namespaceSelector:
+    matchNames:
+      - c756marketplacens
+  selector:
+    matchLabels:
+      app: logger
+  endpoints:
+    - port: http
+      path: /metrics

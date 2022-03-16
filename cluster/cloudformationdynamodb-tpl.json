@@ -1,0 +1,94 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "tableUser": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "user",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "user_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "user_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
+        }
+      }
+    },
+    "tableImages": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "image",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "image_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "image_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
+        }
+      }
+    },
+    "tableSales": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "sales",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "transaction_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "transaction_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
+        }
+      }
+    },
+    "tableLogger": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "logger",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "user_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "user_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
+        }
+      }
+    }
+  },
+  "Description": "DynamoDB tables for ZZ-AWS-ACCESS-KEY-ID"
+}

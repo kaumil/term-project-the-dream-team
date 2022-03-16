@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: users
+spec:
+  hosts:
+    - users
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/users
+      rewrite:
+        uri: /api/v1/users
+      route:
+        - destination:
+            host: users
+            port:
+              number: 30000
+      fault:
+        abort:
+          httpStatus: 500
+          percentage:
+            value: 10
