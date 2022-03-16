@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: logger
+spec:
+  hosts:
+    - logger
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/logger
+      rewrite:
+        uri: /api/v1/logger
+      route:
+        - destination:
+            host: logger
+            port:
+              number: 30003
+      fault:
+        delay:
+          fixedDelay: 500ms
+          percentage:
+            value: 10

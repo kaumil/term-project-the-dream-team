@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: images
+  labels:
+    app: images
+    release: c756
+spec:
+  namespaceSelector:
+    matchNames:
+      - c756marketplacens
+  selector:
+    matchLabels:
+      app: images
+  endpoints:
+    - port: http
+      path: /metrics

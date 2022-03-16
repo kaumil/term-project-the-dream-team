@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cmpt756marketplacedb
+  labels:
+    app: cmpt756marketplacedb
+    release: c756
+spec:
+  namespaceSelector:
+    matchNames:
+      - c756marketplacens
+  selector:
+    matchLabels:
+      app: cmpt756marketplacedb
+  endpoints:
+    - port: http
+      path: /metrics

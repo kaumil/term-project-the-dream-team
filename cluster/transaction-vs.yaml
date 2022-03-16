@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: transaction
+spec:
+  hosts:
+    - transaction
+  # This is an internal service, so is not announced to the gateway.
+  # With no "gateways" field, the default applies: Make this service
+  # known internally to every other service.
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/transaction
+      rewrite:
+        uri: /api/v1/transaction
+      route:
+        - destination:
+            host: transaction
+            port:
+              number: 30002
