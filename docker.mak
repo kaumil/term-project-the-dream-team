@@ -38,7 +38,7 @@ deploy: users images transaction db logger
 		-e AWS_ACCESS_KEY_ID="AKIAIB3X6A7VLFNGSVUQ" \
 		-e AWS_SECRET_ACCESS_KEY="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" \
 		-e AWS_SESSION_TOKEN="" \
-            --publish 30004:30004 --detach --name db $(CREG)/$(REGID)/cyberdb:e3 | tee db.svc.log
+            --publish 30004:30004 --detach --name db $(CREG)/$(REGID)/cmpt756marketplacedb:e3 | tee db.svc.log
 
 scratch:
 	$(DK) stop `$(DK) ps -a -q --filter name="db"` | tee db.stop.log
@@ -61,25 +61,21 @@ transaction: $(LOG_DIR)/transaction.repo.log
 users: $(LOG_DIR)/users.repo.log
 
 $(LOG_DIR)/images.repo.log: images/app.py images/Dockerfile
-	cp images/app.py images/app.py
 	$(DK) build -t $(CREG)/$(REGID)/images:e3 images | tee $(LOG_DIR)/images.img.log
 	$(DK) push $(CREG)/$(REGID)/images:e3 | tee $(LOG_DIR)/images.repo.log
 
 $(LOG_DIR)/logger.repo.log: logger/app.py logger/Dockerfile
-	cp logger/app.py logger/app.py
 	$(DK) build -t $(CREG)/$(REGID)/logger:e3 logger | tee $(LOG_DIR)/logger.img.log
 	$(DK) push $(CREG)/$(REGID)/logger:e3 | tee $(LOG_DIR)/logger.repo.log
 
 $(LOG_DIR)/db.repo.log: db/Dockerfile
-	$(DK) build -t $(CREG)/$(REGID)/cyberdb:e3 db | tee $(LOG_DIR)/db.img.log
-	$(DK) push $(CREG)/$(REGID)/cyberdb:e3 | tee $(LOG_DIR)/db.repo.log
+	$(DK) build -t $(CREG)/$(REGID)/cmpt756marketplacedb:e3 db | tee $(LOG_DIR)/db.img.log
+	$(DK) push $(CREG)/$(REGID)/cmpt756marketplacedb:e3 | tee $(LOG_DIR)/db.repo.log
 
 $(LOG_DIR)/transaction.repo.log: transaction/app.py transaction/Dockerfile
-	cp transaction/app.py transaction/app.py
 	$(DK) build -t $(CREG)/$(REGID)/transaction:e3 cart | tee $(LOG_DIR)/transaction.img.log
 	$(DK) push $(CREG)/$(REGID)/transaction:e3 | tee $(LOG_DIR)/transaction.repo.log
 
 $(LOG_DIR)/users.repo.log: users/app.py users/Dockerfile
-	cp users/app.py users/app.py
 	$(DK) build -t $(CREG)/$(REGID)/users:e3 users | tee $(LOG_DIR)/users.img.log
 	$(DK) push $(CREG)/$(REGID)/users:e3 | tee $(LOG_DIR)/users.repo.log
