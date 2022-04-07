@@ -182,6 +182,33 @@ def create_image():
     )
 
 
+@bp.route("/read_image/<image_id>", methods=["GET"])
+def read_image(image_id):
+    """
+    Function to read image metadata
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    payload = {"objtype": "images", "objkey": image_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    response = requests.get(
+        url,
+        params=payload,
+    )
+    return Response(
+        "Image Read",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
 @bp.after_request
 def add_header(response):
     """
