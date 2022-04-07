@@ -1,6 +1,6 @@
 """
 CMPT 756 Final Project
-Services pertaining to logging services
+Application Image service
 """
 
 # Standard Library Modules
@@ -12,7 +12,12 @@ from flask import Blueprint
 from flask import Flask
 from flask import Response
 from http import HTTPStatus
-from flask import jsonify
+from flask import request
+from datetime import datetime
+
+from uuid import uuid4
+import requests
+import json
 
 
 from prometheus_flask_exporter import PrometheusMetrics
@@ -27,6 +32,15 @@ metrics.info("app_info", "Logger Application Info", version="1.0.0")
 
 bp = Blueprint("app", __name__)
 
+db = {
+    "name": "http://cmpt756marketplacedb:30004/api/v1/datastore",
+    "endpoint": ["read", "write", "delete", "update"],
+}
+
+db_logger = {
+    "name": "http://logger:30003/api/v1/logger",
+    "endpoint": ["create_log"],
+}
 
 # docker internal host: 172.17.0.2
 
@@ -37,6 +51,12 @@ bp = Blueprint("app", __name__)
 @bp.route("/", methods=["GET"])
 @metrics.do_not_track()
 def first_endpoint():
+    """
+    First endpoint
+
+    Returns:
+        flask.Response: Flask Response
+    """
     return Response(
         "",
         status=HTTPStatus.OK,
@@ -47,9 +67,116 @@ def first_endpoint():
 @bp.route("/health", methods=["GET"])
 @metrics.do_not_track()
 def health_check():
-    # data = {"status": "Healthy"}
+    """
+    Function for health check
+
+    Returns:
+        flask.Response: Flask Response
+    """
     return Response(
         "Healthy",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/readiness")
+@metrics.do_not_track()
+def readiness():
+    """
+    Function to check readiness
+
+    Returns:
+        flask.Response: Flask Response
+    """
+    return Response(
+        "Ready",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+def log_writer(user_id, service_name, operation_name, status_code, message):
+    # writing into the logger db
+    url_logger = db_logger["name"] + "/" + db_logger["endpoint"][0]
+    response_logger = requests.post(
+        url_logger,
+        json={
+            "users_id": user_id,
+            "service_name": service_name,
+            "operation_name": operation_name,
+            "status_code": status_code,
+            "message": message,
+        },
+    )
+
+    return response_logger
+
+
+@bp.route("/create_image/", methods=["POST"])
+def create_image():
+    """
+    Function to create an image item on the database
+
+    Returns:
+        JSON: JSON object depicting the response from hitting the database
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+    # print(request.get_json())
+
+    service_name = "images"
+    operation_name = "create_image"
+    user_id = None
+
+    try:
+        content = request.get_json()
+        image_id = content["images_id"] if "images_id" in content else str(uuid4())
+        user_id = content["users_id"]
+
+    except Exception as e:
+
+        # status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+
+        return Response(
+            repr(e),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            mimetype="application/json",
+        )
+        # message = repr(e)
+        # response_message = json.dumps({"message": message, "status_code": status_code})
+        # log_response = log_writer(
+        #     user_id, service_name, operation_name, status_code, message
+        # )
+        # return response_message
+        # return json.dumps({"message": "error reading arguments"})
+
+    url = db["name"] + "/" + db["endpoint"][1]
+    now = datetime.now()
+
+    response = requests.post(
+        url,
+        json={
+            "objtype": "images",
+            "images_id": image_id,
+            "users_id": user_id,
+            "uploaded_on": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        },
+    )
+
+    # # logging the event
+    # response_message = response.json()
+    # calling the logger function to write into logger table
+    log_writer(user_id, service_name, operation_name, "200", "image added")
+
+    return Response(
+        "Image Created",
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
