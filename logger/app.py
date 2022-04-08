@@ -1,6 +1,6 @@
 """
 CMPT 756 Final Project
-Services pertaining to logging services
+Application logging service
 """
 
 # Standard Library Modules
@@ -12,9 +12,11 @@ from flask import Blueprint
 from flask import Flask
 from flask import Response
 from http import HTTPStatus
-from flask import jsonify
+from flask import request
+from datetime import datetime
 
-
+import requests
+import json
 from prometheus_flask_exporter import PrometheusMetrics
 
 
@@ -30,6 +32,12 @@ bp = Blueprint("app", __name__)
 
 # docker internal host: 172.17.0.2
 
+db = {
+    "name": "http://cmpt756marketplacedb:30004/api/v1/datastore",
+    "endpoint": ["read", "write", "delete", "update"],
+}
+
+db_logger = {"name": "http://logger:30003/api/v1/logger", "endpoint": ["create_log"]}
 
 # db = {}
 
@@ -50,6 +58,59 @@ def health_check():
     # data = {"status": "Healthy"}
     return Response(
         "Healthy",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/readiness")
+@metrics.do_not_track()
+def readiness():
+    """
+    Function to check readiness
+
+    Returns:
+        flask.Response: Flask Response
+    """
+    return Response(
+        "Ready",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/create_log/", methods=["POST"])
+def create_log():
+    """
+    Logger service to log every event happening in the marketplace application.
+    Each log will have a user_id, service_name, operation_name, status_code and operation time
+    """
+    print("Test check inside the create event")
+    try:
+        content = request.get_json()
+        user_id = content["users_id"]
+        service_name = content["service_name"]
+        operation_name = content["operation_name"]
+        status_code = content["status_code"]
+        message = content["message"]
+
+    except Exception as e:
+        return json.dumps({"message": repr(e), "status_code": "500"})
+    url = db["name"] + "/" + db["endpoint"][1]
+    requests.post(
+        url,
+        json={
+            "objtype": "logger",
+            "logger_id": user_id,
+            "service_name": service_name,
+            "operation_name": operation_name,
+            "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "status_code": status_code,
+            "message": message,
+        },
+    )
+    return Response(
+        "Log Created",
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
