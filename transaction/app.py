@@ -1,19 +1,23 @@
 """
 CMPT 756 Final Project
-Services pertaining to logging services
+Application Transaction service
 """
 
 # Standard Library Modules
+from datetime import datetime
 import logging
 import sys
 
 # Installed packages
 from flask import Blueprint
 from flask import Flask
+from flask import request
 from flask import Response
 from http import HTTPStatus
-from flask import jsonify
+from uuid import uuid4
 
+import json
+import requests
 
 from prometheus_flask_exporter import PrometheusMetrics
 
@@ -30,6 +34,14 @@ bp = Blueprint("app", __name__)
 
 # docker internal host: 172.17.0.2
 
+db = {
+    "name": "http://cmpt756marketplacedb:30004/api/v1/datastore",
+    "endpoint": ["read", "write", "delete", "update"],
+}
+
+db_logger = {"name": "http://logger:30003/api/v1/logger", "endpoint": ["create_log"]}
+
+db_image = {"name": "http://images:30001/api/v1/images", "endpoint": ["update"]}
 
 # db = {}
 
@@ -37,6 +49,12 @@ bp = Blueprint("app", __name__)
 @bp.route("/", methods=["GET"])
 @metrics.do_not_track()
 def first_endpoint():
+    """
+    First endpoint
+
+    Returns:
+        flask.Response: Flask Response
+    """
     return Response(
         "",
         status=HTTPStatus.OK,
@@ -47,9 +65,143 @@ def first_endpoint():
 @bp.route("/health", methods=["GET"])
 @metrics.do_not_track()
 def health_check():
-    # data = {"status": "Healthy"}
+    """
+    Function for health check
+
+    Returns:
+        flask.Response: Flask Response
+    """
     return Response(
         "Healthy",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/readiness")
+@metrics.do_not_track()
+def readiness():
+    """
+    Function to check readiness
+
+    Returns:
+        flask.Response: Flask Response
+    """
+    return Response(
+        "Ready",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+def log_writer(user_id, service_name, operation_name, status_code, message):
+    # writing into the logger db
+    url_logger = db_logger["name"] + "/" + db_logger["endpoint"][0]
+    response_logger = requests.post(
+        url_logger,
+        json={
+            "users_id": user_id,
+            "service_name": service_name,
+            "operation_name": operation_name,
+            "status_code": status_code,
+            "message": message,
+        },
+    )
+
+    return response_logger
+
+
+@bp.route("/create_transaction/", methods=["POST"])
+def create_transaction():
+    """
+    Function to create a transaction in the database
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+
+    # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    service_name = "transactions"
+    operation_name = "create_transaction"
+    seller_id = None
+
+    try:
+        content = request.get_json()
+        transaction_id = (
+            content["transactions_id"] if "transactions_id" in content else str(uuid4())
+        )
+        seller_id = content["seller_id"]
+        image_id = content["images_id"]
+    except Exception as e:
+
+        status_code = "500"
+        message = repr(e)
+        log_writer(seller_id, service_name, operation_name, status_code, message)
+        return Response(
+            repr(e),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            mimetype="application/json",
+        )
+        # return json.dumps({"message": "error reading arguments"})
+
+    url = db["name"] + "/" + db["endpoint"][1]
+
+    requests.post(
+        url,
+        json={
+            "objtype": "transactions",
+            "transactions_id": transaction_id,
+            "images_id": image_id,
+            "seller_id": seller_id,
+            "sold": "False",
+        },
+    )
+
+    # calling the logger function to write into logger table
+    log_writer(seller_id, service_name, operation_name, "200", "transaction created")
+    return Response(
+        "Transaction Created",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/read_transaction/<transaction_id>", methods=["GET"])
+def read_transaction(transaction_id):
+    """
+    Function to read transaction metadata
+
+    Args:
+        transaction_id (str): Transaction id
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    payload = {"objtype": "transactions", "objkey": transaction_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    requests.get(
+        url,
+        params=payload,
+    )
+    return Response(
+        "Transaction Read",
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
@@ -77,7 +229,7 @@ app.register_blueprint(bp, url_prefix="/api/v1/transaction/")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        logging.error("Usage: app.py <service-port>")
+        logging.error("missing port arg 1")
         sys.exit(-1)
     p = int(sys.argv[1])
     # Do not set debug=True, it will disable Prometheus metrics
