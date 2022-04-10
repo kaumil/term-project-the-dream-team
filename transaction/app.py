@@ -341,7 +341,7 @@ def delete_transaction(transaction_id):
         mimetype="application/json",
     )
 
-
+  
 @bp.after_request
 def add_header(response):
     """
