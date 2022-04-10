@@ -16,6 +16,6 @@ spec:
         uri: /api/v1/datastore
       route:
         - destination:
-            host: cyberdb
+            host: cmpt756marketplacedb
             port:
               number: 30004

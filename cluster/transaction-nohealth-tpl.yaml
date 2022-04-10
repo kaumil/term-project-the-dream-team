@@ -19,47 +19,47 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: images
+  name: transaction
   labels:
-    app: images
+    app: transaction
 spec:
   ports:
-    - port: 30001
+    - port: 30002
       name: http
   selector:
-    app: images
+    app: transaction
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: svc-images
+  name: svc-transaction
   labels:
-    account: SVC_IMAGES
+    account: SVC_TRANSACTION
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: images
+  name: transaction
   labels:
-    app: images
+    app: transaction
     version: v1
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: images
+      app: transaction
       version: v1
   template:
     metadata:
       name: database-pod
       labels:
-        app: images
+        app: transaction
         version: v1
     spec:
-      serviceAccountName: svc-images
+      serviceAccountName: svc-transaction
       containers:
-        - name: images
-          image: ZZ-CR-ID/ZZ-REG-ID/images:latest
+        - name: transaction
+          image: ZZ-CR-ID/ZZ-REG-ID/transaction:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 30001
+            - containerPort: 30004
