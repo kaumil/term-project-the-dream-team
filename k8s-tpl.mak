@@ -15,9 +15,9 @@
 # Where possible, stodout outputs are tee into .out files for later review.
 
 # These will be filled in by template processor
-CREG=ghcr.io
-REGID=krp30
-AWS_REGION=us-west-2
+CREG=ZZ-CR-ID
+REGID=ZZ-REG-ID
+AWS_REGION=ZZ-AWS-REGION
 JAVA_HOME=ZZ-JAVA-HOME
 GAT_DIR=ZZ-GAT-DIR
 

@@ -4,8 +4,7 @@ WORKDIR /code
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app.py .
 
-EXPOSE 30004
+COPY db_test.py .
 
-CMD ["python", "app.py", "30004"]
+CMD ["python", "db_test.py","0.0.0.0", "30004"]
