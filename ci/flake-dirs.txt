@@ -1,1 +1,1 @@
-v1 ../db ../images ../transaction ../logger ../users
+../db ../images ../transaction ../logger ../users
