@@ -22,7 +22,7 @@ def parse_args():
 
 
 def get_url(name, port):
-    return "http://{}:{}/api/v1/db/".format(name, port)
+    return "http://{}:{}/api/v1/datastore/".format(name, port)
 
 
 def test(args):

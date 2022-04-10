@@ -18,6 +18,8 @@
 CREG=ZZ-CR-ID
 REGID=ZZ-REG-ID
 AWS_REGION=ZZ-AWS-REGION
+JAVA_HOME=ZZ-JAVA-HOME
+GAT_DIR=ZZ-GAT-DIR
 
 # Keep all the logs out of main directory
 LOG_DIR=logs
@@ -31,12 +33,28 @@ IC=istioctl
 # Application versions
 # Override these by environment variables and `make -e`
 APP_VER_TAG=v1
-S2_VER=v1
 LOADER_VER=v1
+
+# Gatling parameters to be overridden by environment variables and `make -e`
+SIM_NAME=ReadUserSim
+USERS=1
+
+# Gatling parameters that most of the time will be unchanged
+# but which you might override as projects become sophisticated
+SIM_FILE=ReadTables.scala
+SIM_PACKAGE=proj756
+GATLING_OPTIONS=
+
+# Other Gatling parameters---you should not have to change these
+GAT=$(GAT_DIR)/bin/gatling.sh
+SIM_DIR=gatling/simulations
+RES_DIR=gatling/resources
+SIM_PACKAGE_DIR=$(SIM_DIR)/$(SIM_PACKAGE)
+SIM_FULL_NAME=$(SIM_PACKAGE).$(SIM_NAME)
 
 # Kubernetes parameters that most of the time will be unchanged
 # but which you might override as projects become sophisticated
-APP_NS=c756ns
+APP_NS=c756marketplacens
 ISTIO_NS=istio-system
 
 # this is used to switch M1 Mac to x86 for compatibility with x86 instances/students
@@ -64,35 +82,63 @@ templates:
 #
 #  Nov 2021: Kiali is causing problems so do not deploy
 #provision: istio prom kiali deploy
-provision: istio prom deploy
+provision: istio prom kiali deploy
 
 # --- deploy: Deploy and monitor the three microservices
 # Use `provision` to deploy the entire stack (including Istio, Prometheus, ...).
 # This target only deploys the sample microservices
-deploy: appns gw s1 s2 db monitoring
+deploy: appns gw logger users images transaction db monitoring
 	$(KC) -n $(APP_NS) get gw,vs,deploy,svc,pods
 
 # --- rollout: Rollout new deployments of all microservices
-rollout: rollout-s1 rollout-s2 rollout-db
+rollout: rollout-users rollout-images rollout-transaction rollout-db rollout-logger
 
-# --- rollout-s1: Rollout a new deployment of S1
-rollout-s1: s1
-	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756s1
+# rollout-users: users
+# 	$(KC) rollout -n $(APP_NS) restart deployment/users
+
+# rollout-images: images
+# 	$(KC) rollout -n $(APP_NS) restart deployment/images
+
+# rollout-transaction: transaction
+# 	$(KC) rollout -n $(APP_NS) restart deployment/transaction
+
+# rollout-logger: logger
+# 	$(KC) rollout -n $(APP_NS) restart deployment/logger
+rollout-users: $(LOG_DIR)/users.repo.log  cluster/users-dpl.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/users-dpl.yaml | tee $(LOG_DIR)/rollout-users.log
+	$(KC) rollout -n $(APP_NS) restart deployment/users | tee -a $(LOG_DIR)/rollout-users.log
+
+rollout-images: $(LOG_DIR)/images.repo.log  cluster/images-dpl.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/images-dpl.yaml | tee $(LOG_DIR)/rollout-images.log
+	$(KC) rollout -n $(APP_NS) restart deployment/images | tee -a $(LOG_DIR)/rollout-images.log
+
+rollout-transaction: $(LOG_DIR)/transaction.repo.log  cluster/transaction-dpl.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/transaction-dpl.yaml | tee $(LOG_DIR)/rollout-transaction.log
+	$(KC) rollout -n $(APP_NS) restart deployment/transaction | tee -a $(LOG_DIR)/rollout-transaction.log
+
+rollout-logger: $(LOG_DIR)/logger.repo.log  cluster/logger-dpl.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/logger-dpl.yaml | tee $(LOG_DIR)/rollout-logger.log
+	$(KC) rollout -n $(APP_NS) restart deployment/logger | tee -a $(LOG_DIR)/rollout-logger.log
+
+rollout-db: db
+	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756marketplacedb
+
 
 # --- rollout-s2: Rollout a new deployment of S2
-rollout-s2: $(LOG_DIR)/s2-$(S2_VER).repo.log  cluster/s2-dpl-$(S2_VER).yaml
-	$(KC) -n $(APP_NS) apply -f cluster/s2-dpl-$(S2_VER).yaml | tee $(LOG_DIR)/rollout-s2.log
-	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756s2-$(S2_VER) | tee -a $(LOG_DIR)/rollout-s2.log
+# rollout-s2: $(LOG_DIR)/s2-$(S2_VER).repo.log  cluster/s2-dpl-$(S2_VER).yaml
+# 	$(KC) -n $(APP_NS) apply -f cluster/s2-dpl-$(S2_VER).yaml | tee $(LOG_DIR)/rollout-s2.log
+# 	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756s2-$(S2_VER) | tee -a $(LOG_DIR)/rollout-s2.log
 
 # --- rollout-db: Rollout a new deployment of DB
-rollout-db: db
-	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756db
+# rollout-db: db
+# 	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756marketplacedb
 
-# --- health-off: Turn off the health monitoring for the three microservices
-# If you don't know exactly why you want to do this---don't
+
 health-off:
-	$(KC) -n $(APP_NS) apply -f cluster/s1-nohealth.yaml
-	$(KC) -n $(APP_NS) apply -f cluster/s2-nohealth.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/users-nohealth.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/images-nohealth.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/transaction-nohealth.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/logger-nohealth.yaml
 	$(KC) -n $(APP_NS) apply -f cluster/db-nohealth.yaml
 
 # --- scratch: Delete the microservices and everything else in application NS
@@ -109,7 +155,7 @@ scratch: clean
 
 # --- clean: Delete all the application log files
 clean:
-	/bin/rm -f $(LOG_DIR)/{s1,s2,db,gw,monvs}*.log $(LOG_DIR)/rollout*.log
+	/bin/rm -f $(LOG_DIR)/{logger,users,images,transaction,db,gw,monvs}*.log $(LOG_DIR)/rollout*.log
 
 # --- dashboard: Start the standard Kubernetes dashboard
 # NOTE:  Before invoking this, the dashboard must be installed and a service account created
@@ -126,28 +172,44 @@ extern: showcontext
 	$(KC) -n $(ISTIO_NS) get svc istio-ingressgateway
 
 # --- log-X: show the log of a particular service
-log-s1:
-	$(KC) -n $(APP_NS) logs deployment/cmpt756s1 --container cmpt756s1
+log-users:
+	$(KC) -n $(APP_NS) logs deployment/users --container users
 
-log-s2:
-	$(KC) -n $(APP_NS) logs deployment/cmpt756s2 --container cmpt756s2
+log-images:
+	$(KC) -n $(APP_NS) logs deployment/images --container images
+
+log-transaction:
+	$(KC) -n $(APP_NS) logs deployment/transaction --container transaction
+
+log-logger:
+	$(KC) -n $(APP_NS) logs deployment/logger --container logger
 
 log-db:
-	$(KC) -n $(APP_NS) logs deployment/cmpt756db --container cmpt756db
+	$(KC) -n $(APP_NS) logs deployment/cmpt756marketplacedb --container cmpt756marketplacedb
 
 
 # --- shell-X: hint for shell into a particular service
-shell-s1:
-	@echo Use the following command line to drop into the s1 service:
-	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756s1 --container cmpt756s1 -- bash
+shell-users:
+	@echo Use the following command line to drop into the users service:
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/users --container users -- bash
 
-shell-s2:
-	@echo Use the following command line to drop into the s2 service:
-	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756s2 --container cmpt756s2 -- bash
+shell-images:
+	@echo Use the following command line to drop into the images service:
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/images --container images -- bash
+
+shell-transaction:
+	@echo Use the following command line to drop into the transaction service:
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/transaction --container transaction -- bash
+
+shell-logger:
+	@echo Use the following command line to drop into the logger service:
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/logger --container logger -- bash
 
 shell-db:
 	@echo Use the following command line to drop into the db service:
-	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756db --container cmpt756db -- bash
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756marketplacedb --container cmpt756marketplacedb -- bash
+
+
 
 # --- lsa: List services in all namespaces
 lsa: showcontext
@@ -172,13 +234,6 @@ reinstate: istio
 showcontext:
 	$(KC) config get-contexts
 
-# Run the loader, rebuilding if necessary, starting DynamDB if necessary, building ConfigMaps
-loader: dynamodb-init $(LOG_DIR)/loader.repo.log cluster/loader.yaml
-	$(KC) -n $(APP_NS) delete --ignore-not-found=true jobs/cmpt756loader
-	tools/build-configmap.sh gatling/resources/users.csv cluster/users-header.yaml | kubectl -n $(APP_NS) apply -f -
-	tools/build-configmap.sh gatling/resources/music.csv cluster/music-header.yaml | kubectl -n $(APP_NS) apply -f -
-	$(KC) -n $(APP_NS) apply -f cluster/loader.yaml | tee $(LOG_DIR)/loader.log
-
 # --- dynamodb-init: set up our DynamoDB tables
 #
 dynamodb-init: $(LOG_DIR)/dynamodb-init.log
@@ -187,14 +242,14 @@ dynamodb-init: $(LOG_DIR)/dynamodb-init.log
 $(LOG_DIR)/dynamodb-init.log: cluster/cloudformationdynamodb.json
 	@# "|| true" suffix because command fails when stack already exists
 	@# (even with --on-failure DO_NOTHING, a nonzero error code is returned)
-	$(AWS) cloudformation create-stack --stack-name db-ZZ-REG-ID --template-body file://$< || true | tee $(LOG_DIR)/dynamodb-init.log
+	$(AWS) cloudformation create-stack --stack-name db --template-body file://$< || true | tee $(LOG_DIR)/dynamodb-init.log
 	# Must give DynamoDB time to create the tables before running the loader
 	sleep 20
 
 # --- dynamodb-stop: Stop the AWS DynamoDB service
 #
 dynamodb-clean:
-	$(AWS) cloudformation delete-stack --stack-name db-ZZ-REG-ID || true | tee $(LOG_DIR)/dynamodb-clean.log
+	$(AWS) cloudformation delete-stack --stack-name db || true | tee $(LOG_DIR)/dynamodb-clean.log
 	@# Rename DynamoDB log so dynamodb-init will force a restart but retain the log
 	/bin/mv -f $(LOG_DIR)/dynamodb-init.log $(LOG_DIR)/dynamodb-init-old.log || true
 
@@ -275,17 +330,27 @@ monvs: cluster/monitoring-virtualservice.yaml
 gw: cluster/service-gateway.yaml
 	$(KC) -n $(APP_NS) apply -f $< > $(LOG_DIR)/gw.log
 
-# Update S1 and associated monitoring, rebuilding if necessary
-s1: $(LOG_DIR)/s1.repo.log cluster/s1.yaml cluster/s1-sm.yaml cluster/s1-vs.yaml
-	$(KC) -n $(APP_NS) apply -f cluster/s1.yaml | tee $(LOG_DIR)/s1.log
-	$(KC) -n $(APP_NS) apply -f cluster/s1-sm.yaml | tee -a $(LOG_DIR)/s1.log
-	$(KC) -n $(APP_NS) apply -f cluster/s1-vs.yaml | tee -a $(LOG_DIR)/s1.log
 
-# Update S2 and associated monitoring, rebuilding if necessary
-s2: rollout-s2 cluster/s2-svc.yaml cluster/s2-sm.yaml cluster/s2-vs.yaml
-	$(KC) -n $(APP_NS) apply -f cluster/s2-svc.yaml | tee $(LOG_DIR)/s2.log
-	$(KC) -n $(APP_NS) apply -f cluster/s2-sm.yaml | tee -a $(LOG_DIR)/s2.log
-	$(KC) -n $(APP_NS) apply -f cluster/s2-vs.yaml | tee -a $(LOG_DIR)/s2.log
+
+logger: rollout-logger cluster/logger-svc.yaml cluster/logger-sm.yaml cluster/logger-vs.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/logger-svc.yaml | tee $(LOG_DIR)/logger.log
+	$(KC) -n $(APP_NS) apply -f cluster/logger-sm.yaml | tee -a $(LOG_DIR)/logger.log
+	$(KC) -n $(APP_NS) apply -f cluster/logger-vs.yaml | tee -a $(LOG_DIR)/logger.log
+
+users: rollout-users cluster/users-svc.yaml cluster/users-sm.yaml cluster/users-vs.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/users-svc.yaml | tee $(LOG_DIR)/users.log
+	$(KC) -n $(APP_NS) apply -f cluster/users-sm.yaml | tee -a $(LOG_DIR)/users.log
+	$(KC) -n $(APP_NS) apply -f cluster/users-vs.yaml | tee -a $(LOG_DIR)/users.log
+
+images: rollout-images cluster/images-svc.yaml cluster/images-sm.yaml cluster/images-vs.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/images-svc.yaml | tee $(LOG_DIR)/images.log
+	$(KC) -n $(APP_NS) apply -f cluster/images-sm.yaml | tee -a $(LOG_DIR)/images.log
+	$(KC) -n $(APP_NS) apply -f cluster/images-vs.yaml | tee -a $(LOG_DIR)/images.log
+
+transaction: rollout-transaction cluster/transaction-svc.yaml cluster/transaction-sm.yaml cluster/transaction-vs.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/transaction-svc.yaml | tee $(LOG_DIR)/transaction.log
+	$(KC) -n $(APP_NS) apply -f cluster/transaction-sm.yaml | tee -a $(LOG_DIR)/transaction.log
+	$(KC) -n $(APP_NS) apply -f cluster/transaction-vs.yaml | tee -a $(LOG_DIR)/transaction.log
 
 # Update DB and associated monitoring, rebuilding if necessary
 db: $(LOG_DIR)/db.repo.log cluster/awscred.yaml cluster/dynamodb-service-entry.yaml cluster/db.yaml cluster/db-sm.yaml cluster/db-vs.yaml
@@ -296,25 +361,36 @@ db: $(LOG_DIR)/db.repo.log cluster/awscred.yaml cluster/dynamodb-service-entry.y
 	$(KC) -n $(APP_NS) apply -f cluster/db-vs.yaml | tee -a $(LOG_DIR)/db.log
 
 # Build & push the images up to the CR
-cri: $(LOG_DIR)/s1.repo.log $(LOG_DIR)/s2-$(S2_VER).repo.log $(LOG_DIR)/db.repo.log
+cri: $(LOG_DIR)/logger.repo.log $(LOG_DIR)/users.repo.log $(LOG_DIR)/images.repo.log $(LOG_DIR)/transaction.repo.log $(LOG_DIR)/db.repo.log
 
-# Build the s1 service
-$(LOG_DIR)/s1.repo.log: s1/Dockerfile s1/app.py s1/requirements.txt
-	make -f k8s.mak --no-print-directory registry-login
-	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) s1 | tee $(LOG_DIR)/s1.img.log
-	$(DK) push $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) | tee $(LOG_DIR)/s1.repo.log
 
-# Build the s2 service
-$(LOG_DIR)/s2-$(S2_VER).repo.log: s2/$(S2_VER)/Dockerfile s2/$(S2_VER)/app.py s2/$(S2_VER)/requirements.txt
+
+
+$(LOG_DIR)/logger.repo.log: logger/Dockerfile logger/app.py logger/requirements.txt
 	make -f k8s.mak --no-print-directory registry-login
-	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) s2/$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).img.log
-	$(DK) push $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).repo.log
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/logger:$(APP_VER_TAG) logger | tee $(LOG_DIR)/logger.img.log
+	$(DK) push $(CREG)/$(REGID)/logger:$(APP_VER_TAG) | tee $(LOG_DIR)/logger.repo.log
+
+$(LOG_DIR)/users.repo.log: users/Dockerfile users/app.py users/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/users:$(APP_VER_TAG) users | tee $(LOG_DIR)/users.img.log
+	$(DK) push $(CREG)/$(REGID)/users:$(APP_VER_TAG) | tee $(LOG_DIR)/users.repo.log
+
+$(LOG_DIR)/images.repo.log: images/Dockerfile images/app.py images/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/images:$(APP_VER_TAG) images | tee $(LOG_DIR)/images.img.log
+	$(DK) push $(CREG)/$(REGID)/images:$(APP_VER_TAG) | tee $(LOG_DIR)/images.repo.log
+
+$(LOG_DIR)/transaction.repo.log: transaction/Dockerfile transaction/app.py transaction/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/transaction:$(APP_VER_TAG) transaction | tee $(LOG_DIR)/transaction.img.log
+	$(DK) push $(CREG)/$(REGID)/transaction:$(APP_VER_TAG) | tee $(LOG_DIR)/transaction.repo.log
 
 # Build the db service
 $(LOG_DIR)/db.repo.log: db/Dockerfile db/app.py db/requirements.txt
 	make -f k8s.mak --no-print-directory registry-login
-	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) db | tee $(LOG_DIR)/db.img.log
-	$(DK) push $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756marketplacedb:$(APP_VER_TAG) db | tee $(LOG_DIR)/db.img.log
+	$(DK) push $(CREG)/$(REGID)/cmpt756marketplacedb:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
 
 # Build the loader
 $(LOG_DIR)/loader.repo.log: loader/app.py loader/requirements.txt loader/Dockerfile registry-login
@@ -325,9 +401,29 @@ $(LOG_DIR)/loader.repo.log: loader/app.py loader/requirements.txt loader/Dockerf
 # This isn't often used because the individual build targets also push
 # the updated images to the registry
 cr: registry-login
-	$(DK) push $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) | tee $(LOG_DIR)/s1.repo.log
-	$(DK) push $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) | tee $(LOG_DIR)/s2.repo.log
-	$(DK) push $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
+	$(DK) push $(CREG)/$(REGID)/logger:$(APP_VER_TAG) | tee $(LOG_DIR)/logger.repo.log
+	$(DK) push $(CREG)/$(REGID)/users:$(APP_VER_TAG) | tee $(LOG_DIR)/users.repo.log
+	$(DK) push $(CREG)/$(REGID)/images:$(APP_VER_TAG) | tee $(LOG_DIR)/images.repo.log
+	$(DK) push $(CREG)/$(REGID)/transaction:$(APP_VER_TAG) | tee $(LOG_DIR)/transaction.repo.log	
+	$(DK) push $(CREG)/$(REGID)/cmpt756marketplacedb:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
+
+
+# The following may not even work.
+#
+# General Gatling target: Specify CLUSTER_IP, USERS, and SIM_NAME as environment variables. Full output.
+run-gatling:
+	JAVA_HOME=$(JAVA_HOME) $(GAT) -rsf $(RES_DIR) -sf $(SIM_DIR) -bf $(GAT_DIR)/target/test-classes -s $(SIM_FULL_NAME) -rd "Simulation $(SIM_NAME)" $(GATLING_OPTIONS)
+
+# The following should probably not be used---it starts the job but under most shells
+# this process will not be listed by the `jobs` command. This makes it difficult
+# to kill the process when you want to end the load test
+gatling-music:
+	@/bin/sh -c 'CLUSTER_IP=$(INGRESS_IP) USERS=$(USERS) SIM_NAME=ReadMusicSim JAVA_HOME=$(JAVA_HOME) $(GAT) -rsf $(RES_DIR) -sf $(SIM_DIR) -bf $(GAT_DIR)/target/test-classes -s $(SIM_FULL_NAME) -rd "Simulation $(SIM_NAME)" $(GATLING_OPTIONS) $(GAT_SUFFIX)'
+
+# Different approach from gatling-music but the same problems. Probably do not use this.
+gatling-user:
+	@/bin/sh -c 'CLUSTER_IP=$(INGRESS_IP) USERS=$(USERS) SIM_NAME=ReadUserSim make -e -f k8s.mak run-gatling $(GAT_SUFFIX)'
+
 
 # ---------------------------------------------------------------------------------------
 # Handy bits for exploring the container images... not necessary
