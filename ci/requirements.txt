@@ -1,4 +1,6 @@
 black==22.1.0
+boto3==1.14.43
+botocore==1.17.43
 certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.12
