@@ -15,7 +15,10 @@ import requests
 
 
 def parse_args():
-    argp = argparse.ArgumentParser("db_test", description="Simple test of db service")
+    argp = argparse.ArgumentParser(
+        "db_test",
+        description="Simple test of db service"
+    )
     argp.add_argument("name", help="DNS name or IP address of db server")
     argp.add_argument("port", type=int, help="Port number of db server")
     return argp.parse_args()

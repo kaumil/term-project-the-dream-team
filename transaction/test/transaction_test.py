@@ -18,8 +18,13 @@ def parse_args():
     argp = argparse.ArgumentParser(
         "transaction_test", description="Simple test of transaction service"
     )
-    argp.add_argument("name", help="DNS name or IP address of transaction server")
-    argp.add_argument("port", type=int, help="Port number of transaction server")
+    argp.add_argument(
+        "name",
+        help="DNS name or IP address of transaction server")
+    argp.add_argument(
+        "port",
+        type=int,
+        help="Port number of transaction server")
     return argp.parse_args()
 
 

@@ -39,9 +39,15 @@ db = {
     "endpoint": ["read", "write", "delete", "update"],
 }
 
-db_logger = {"name": "http://logger:30003/api/v1/logger", "endpoint": ["create_log"]}
+db_logger = {
+    "name": "http://logger:30003/api/v1/logger",
+    "endpoint": ["create_log"]
+}
 
-db_image = {"name": "http://images:30001/api/v1/images", "endpoint": ["update"]}
+db_image = {
+    "name": "http://images:30001/api/v1/images",
+    "endpoint": ["update"]
+}
 
 # db = {}
 
@@ -136,7 +142,8 @@ def create_transaction():
     try:
         content = request.get_json()
         transaction_id = (
-            content["transactions_id"] if "transactions_id" in content else str(uuid4())
+            content["transactions_id"] if "transactions_id" in content
+            else str(uuid4())
         )
         seller_id = content["seller_id"]
         image_id = content["images_id"]
@@ -144,7 +151,12 @@ def create_transaction():
 
         status_code = "500"
         message = repr(e)
-        log_writer(seller_id, service_name, operation_name, status_code, message)
+        log_writer(
+            seller_id,
+            service_name,
+            operation_name,
+            status_code,
+            message)
         return Response(
             repr(e),
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -166,7 +178,12 @@ def create_transaction():
     )
 
     # calling the logger function to write into logger table
-    log_writer(seller_id, service_name, operation_name, "200", "transaction created")
+    log_writer(
+        seller_id,
+        service_name,
+        operation_name,
+        "200",
+        "transaction created")
     return Response(
         "Transaction Created",
         status=HTTPStatus.OK,
@@ -240,7 +257,12 @@ def update_transaction(transaction_id):
         status_code = "500"
         message = repr(e)
         json.dumps({"message": message, "status_code": status_code})
-        log_writer(buyer_id, service_name, operation_name, status_code, message)
+        log_writer(
+            buyer_id,
+            service_name,
+            operation_name,
+            status_code,
+            message)
 
         return Response(
             repr(e),
@@ -284,7 +306,12 @@ def update_transaction(transaction_id):
     response.json()
 
     # calling the logger function to write into logger table
-    log_writer(buyer_id, service_name, operation_name, "200", "transaction updated")
+    log_writer(
+        buyer_id,
+        service_name,
+        operation_name,
+        "200",
+        "transaction updated")
 
     return Response(
         "Transaction Updated",
@@ -333,7 +360,12 @@ def delete_transaction(transaction_id):
     )
 
     # calling the logger function to write into logger table
-    log_writer(buyer_id, service_name, operation_name, "200", "transaction deleted")
+    log_writer(
+        buyer_id,
+        service_name,
+        operation_name,
+        "200",
+        "transaction deleted")
 
     return Response(
         "Transaction Deleted",

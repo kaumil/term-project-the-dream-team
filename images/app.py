@@ -17,7 +17,6 @@ from datetime import datetime
 
 from uuid import uuid4
 import requests
-import json
 
 
 from prometheus_flask_exporter import PrometheusMetrics
@@ -137,7 +136,8 @@ def create_image():
 
     try:
         content = request.get_json()
-        image_id = content["images_id"] if "images_id" in content else str(uuid4())
+        image_id = content["images_id"] if "images_id" in content \
+            else str(uuid4())
         user_id = content["users_id"]
 
     except Exception as e:
@@ -149,18 +149,11 @@ def create_image():
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
             mimetype="application/json",
         )
-        # message = repr(e)
-        # response_message = json.dumps({"message": message, "status_code": status_code})
-        # log_response = log_writer(
-        #     user_id, service_name, operation_name, status_code, message
-        # )
-        # return response_message
-        # return json.dumps({"message": "error reading arguments"})
 
     url = db["name"] + "/" + db["endpoint"][1]
     now = datetime.now()
 
-    response = requests.post(
+    requests.post(
         url,
         json={
             "objtype": "images",
@@ -198,7 +191,7 @@ def read_image(image_id):
 
     payload = {"objtype": "images", "objkey": image_id}
     url = db["name"] + "/" + db["endpoint"][0]
-    response = requests.get(
+    requests.get(
         url,
         params=payload,
     )
@@ -256,7 +249,7 @@ def update_image(image_id):
     )
 
     # logging the event
-    response_message = response.json()
+    response.json()
     # calling the logger function to write into logger table
     log_writer(user_id, service_name, operation_name, "200", "image updated")
 
@@ -303,7 +296,7 @@ def delete_image(image_id):
     )
 
     # logging the event
-    response_message = response.json()
+    response.json()
 
     # calling the logger function to write into logger table
     log_writer(user_id, service_name, operation_name, "200", "image deleted")
@@ -311,8 +304,9 @@ def delete_image(image_id):
         "Image Deleted",
         status=HTTPStatus.OK,
         mimetype="application/json",
-    )
-  
+    ) 
+
+
 @bp.after_request
 def add_header(response):
     """
