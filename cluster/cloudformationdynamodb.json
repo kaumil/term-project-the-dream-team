@@ -1,0 +1,94 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "tableUser": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "users",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "users_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "users_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
+        }
+      }
+    },
+    "tableImages": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "images",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "images_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "images_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
+        }
+      }
+    },
+    "tableTransaction": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "transactions",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "transactions_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "transactions_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
+        }
+      }
+    },
+    "tableLogger": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "logger",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "logger_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "logger_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
+        }
+      }
+    }
+  },
+  "Description": "DynamoDB tables for AKIA6JJDBYOM77Q5MGMZ"
+}

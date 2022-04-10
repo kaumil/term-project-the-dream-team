@@ -182,6 +182,137 @@ def create_image():
     )
 
 
+@bp.route("/read_image/<image_id>", methods=["GET"])
+def read_image(image_id):
+    """
+    Function to read image metadata
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    payload = {"objtype": "images", "objkey": image_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    response = requests.get(
+        url,
+        params=payload,
+    )
+    return Response(
+        "Image Read",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/change_owner/<image_id>", methods=["PUT"])
+def update_image(image_id):
+    """
+    Function to update image metadata
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+    service_name = "images"
+    operation_name = "update_image"
+    user_id = None
+
+    try:
+        content = request.get_json()
+        new_user_id = content["users_id"]
+
+    except Exception as e:
+        status_code = "500"
+        message = repr(e)
+        log_writer(user_id, service_name, operation_name, status_code, message)
+
+        return Response(
+            repr(e),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            mimetype="application/json",
+        )
+
+        # return json.dumps({"message": "error reading arguments"})
+
+    payload = {"objtype": "images", "objkey": image_id}
+    url = db["name"] + "/" + db["endpoint"][3]
+
+    response = requests.put(
+        url,
+        params=payload,
+        json={"users_id": new_user_id},
+    )
+
+    # logging the event
+    response_message = response.json()
+    # calling the logger function to write into logger table
+    log_writer(user_id, service_name, operation_name, "200", "image updated")
+
+    return Response(
+        "Image Updated",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/delete_image/<image_id>", methods=["DELETE"])
+def delete_image(image_id):
+    """
+    Function to delete image
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    service_name = "images"
+    operation_name = "delete_image"
+    user_id = None
+
+    payload = {"objtype": "images", "objkey": image_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    image_response = requests.get(
+        url,
+        params=payload,
+    )
+    user_id = image_response["Items"][0]["users_id"]
+
+    url = db["name"] + "/" + db["endpoint"][2]
+    response = requests.delete(
+        url,
+        params={"objtype": "images", "objkey": image_id},
+    )
+
+    # logging the event
+    response_message = response.json()
+
+    # calling the logger function to write into logger table
+    log_writer(user_id, service_name, operation_name, "200", "image deleted")
+    return Response(
+        "Image Deleted",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+  
 @bp.after_request
 def add_header(response):
     """
