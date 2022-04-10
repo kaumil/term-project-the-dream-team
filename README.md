@@ -20,6 +20,6 @@ This application is a marketplace for the sale and purchase of Non-Fungible Toke
 ## System Design
 ![image](https://user-images.githubusercontent.com/52950086/162638350-96c1dca9-e295-4ab3-b17c-00da36ba5b46.png)
 
-## Instructions to Run
+## Setup and Installation
 
 Todo by Kaumil.
