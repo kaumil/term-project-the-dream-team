@@ -1,0 +1,38 @@
+name: CI Sample Test
+
+on:
+  push:
+    branches: [cibranch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Determine the canonical owner
+        run: |
+          tools/find-canonical-owner.sh $GITHUB_REPOSITORY ${{ github.repository_owner }} >> $GITHUB_ENV
+
+      - name: Instantiate template files based on the canonical owner
+        # For A1, only need ZZ-REG-ID to instantiate s2/standalone/unique_code-tpl.py
+        run: |
+          sed -e "s/ZZ-REG-ID=.*/ZZ-REG-ID=${{ env.canonical-owner }}/" cluster/tpl-vars-blank.txt > cluster/tpl-vars.txt
+          make -f k8s-tpl.mak templates
+
+      - name: Build server
+        run: |
+          cd transaction/
+          make build
+
+      - name: Run server
+        # The success or failure of the job is determined by the
+        # return code from this last step
+        run: |
+          make run
+          # Give time for server to start up
+          sleep 5
+          cd s2/test/
+          # The actual test!
+          make run-music_test
