@@ -267,6 +267,53 @@ def update_image(image_id):
     )
 
 
+@bp.route("/delete_image/<image_id>", methods=["DELETE"])
+def delete_image(image_id):
+    """
+    Function to delete image
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    service_name = "images"
+    operation_name = "delete_image"
+    user_id = None
+
+    payload = {"objtype": "images", "objkey": image_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    image_response = requests.get(
+        url,
+        params=payload,
+    )
+    user_id = image_response["Items"][0]["users_id"]
+
+    url = db["name"] + "/" + db["endpoint"][2]
+    response = requests.delete(
+        url,
+        params={"objtype": "images", "objkey": image_id},
+    )
+
+    # logging the event
+    response_message = response.json()
+
+    # calling the logger function to write into logger table
+    log_writer(user_id, service_name, operation_name, "200", "image deleted")
+    return Response(
+        "Image Deleted",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
 @bp.after_request
 def add_header(response):
     """
