@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY db_test.py .
 
-CMD ["python", "db_test.py","0.0.0.0", "30002"]
+CMD ["python", "db_test.py","0.0.0.0", "30004"]
