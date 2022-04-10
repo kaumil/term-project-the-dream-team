@@ -115,7 +115,24 @@ def create_log():
         mimetype="application/json",
     )
 
+@bp.route("/read_log/<user_id>", methods=["GET"])
+def read_log(user_id):
+    """
+    Function to read logs from a user within a time frame
 
+    Args:
+        user_id (str): Target user id to read logs from
+    """
+    url = db["name"] + "/" + db["endpoint"][0]
+
+    payload = {"objtype": "logger", "objkey": user_id}
+    requests.get(url, params=payload)
+    return Response(
+        "Log Read",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+  
 @bp.after_request
 def add_header(response):
     """
