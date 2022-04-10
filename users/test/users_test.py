@@ -16,15 +16,15 @@ import requests
 
 def parse_args():
     argp = argparse.ArgumentParser(
-        "transaction_test", description="Simple test of transaction service"
+        "users_test", description="Simple test of users service"
     )
-    argp.add_argument("name", help="DNS name or IP address of transaction server")
-    argp.add_argument("port", type=int, help="Port number of transaction server")
+    argp.add_argument("name", help="DNS name or IP address of users server")
+    argp.add_argument("port", type=int, help="Port number of users server")
     return argp.parse_args()
 
 
 def get_url(name, port):
-    return "http://{}:{}/api/v1/transaction/".format(name, port)
+    return "http://{}:{}/api/v1/users/".format(name, port)
 
 
 def test(args):

@@ -1,4 +1,4 @@
-name: CI Sample Test
+name: CI Users Test
 
 on:
   push:
@@ -22,24 +22,24 @@ jobs:
 
       - name: Build server
         run: |
-          cd transaction/
+          cd users/
           make build
           cd ../
 
       - name: Build test client
         run: |
-          cd transaction/test/
-          make build-transaction_test
+          cd users/test/
+          make build-users_test
           cd ../../
 
       - name: Run server
         # The success or failure of the job is determined by the
         # return code from this last step
         run: |
-          cd transaction/
+          cd users/
           make run
           # Give time for server to start up
           sleep 5
           cd test/
           # The actual test!
-          make run-transaction_test
+          make run-users_test
