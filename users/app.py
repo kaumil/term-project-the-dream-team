@@ -37,7 +37,9 @@ db = {
     "endpoint": ["read", "write", "delete", "update"],
 }
 
-db_logger = {"name": "http://logger:30003/api/v1/logger", "endpoint": ["create_log"]}
+db_logger = {
+    "name": "http://logger:30003/api/v1/logger",
+    "endpoint": ["create_log"]}
 
 
 @bp.route("/", methods=["GET"])
@@ -151,7 +153,8 @@ def create_user():
         username = content["username"]
         password = content["password"]
         role = content["users_role"]
-        user_id = content["users_id"] if "users_id" in content else str(uuid4())
+        user_id = content["users_id"] if "users_id" in content\
+            else str(uuid4())
 
     except Exception as e:
         # return json.dumps({"message": repr(e)})
@@ -163,7 +166,7 @@ def create_user():
 
     url = db["name"] + "/" + db["endpoint"][1]
 
-    response = requests.post(
+    requests.post(
         url,
         json={
             "objtype": "users",
@@ -193,7 +196,7 @@ def delete_user(user_id):
     #     )
     url = db["name"] + "/" + db["endpoint"][2]
 
-    response = requests.delete(url, params={"objtype": "users", "objkey": user_id})
+    requests.delete(url, params={"objtype": "users", "objkey": user_id})
     return Response(
         "User Deleted",
         status=HTTPStatus.OK,
@@ -213,7 +216,7 @@ def get_user(user_id):
     #     )
     payload = {"objtype": "users", "objkey": user_id}
     url = db["name"] + "/" + db["endpoint"][0]
-    response = requests.get(url, params=payload)
+    requests.get(url, params=payload)
     return Response(
         "User Read",
         status=HTTPStatus.OK,

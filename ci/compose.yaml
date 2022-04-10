@@ -1,0 +1,85 @@
+# Set up an integration test of DB, S1, and S2 using a local
+# DynamoDB.  Assumes a fresh environment where none of the
+# images have been created (or, if an image exists, that it
+# is current).  The DynamoDB keeps all tables in memory,
+# so no tables exist at startup and any tables created will be
+# deleted upon exit.
+#
+services:
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -inMemory"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    working_dir: /home/dynamodblocal
+  cmpt756marketplacedb:
+    build: ../db
+    image: ci_db
+    container_name: cmpt756marketplacedb
+    ports:
+      - "30004:30004"
+    environment:
+      AWS_REGION: 'us-west-2'
+      AWS_ACCESS_KEY_ID: 'DUMMY_KEY_ID'
+      AWS_SECRET_ACCESS_KEY: 'DUMMY_ACCESS_KEY'
+      SVC_LOADER_TOKEN: 'DUMMY_LOADER_TOKEN'
+      DYNAMODB_URL: 'http://dynamodb-local:8000'
+  users:
+    depends_on:
+      - dynamodb-local
+      - cmpt756marketplacedb
+    build: ../users
+    image: ci_users
+    container_name: users
+    ports:
+      - "30000:30000"
+  images:
+    depends_on:
+      - dynamodb-local
+      - cmpt756marketplacedb
+      - users
+    build: ../images
+    image: ci_images
+    container_name: images
+    ports:
+      - "30001:30001"
+
+  transaction:
+    depends_on:
+      - dynamodb-local
+      - cmpt756marketplacedb
+      - images
+    build: ../transaction
+    image: ci_transaction
+    container_name: transaction
+    ports:
+      - "30002:30002"
+  logger:
+    depends_on:
+      - dynamodb-local
+      - cmpt756marketplacedb
+      - transaction
+    build: ../logger
+    image: ci_logger
+    container_name: logger
+    ports:
+      - "30003:30003"
+  test:
+    command: "python ci_test.py users 30000 images 30001 transaction 30002 logger 30003"
+    depends_on:
+      - dynamodb-local
+      - cmpt756marketplacedb
+      - users
+      - images
+      - transaction
+      - logger
+    build: .
+    image: ci_test
+    container_name: test
+    environment:
+      AWS_REGION: 'us-west-2'
+      AWS_ACCESS_KEY_ID: 'DUMMY_KEY_ID'
+      AWS_SECRET_ACCESS_KEY: 'DUMMY_ACCESS_ KEY'
+      SVC_LOADER_TOKEN: 'DUMMY_LOADER_TOKEN'
+      DYNAMODB_URL: 'http://dynamodb-local:8000'

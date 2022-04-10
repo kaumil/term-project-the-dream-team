@@ -36,7 +36,7 @@ bp = Blueprint("app", __name__)
 
 # default to us-east-1 if no region is specified
 # (us-east-1 is the default/only supported region for a starter account)
-region = os.getenv("AWS_REGION", "us-east-1")
+region = os.getenv("AWS_REGION", "us-west-2")
 
 # these must be present; if they are missing, we should probably bail now
 access_key = os.getenv("AWS_ACCESS_KEY_ID")
@@ -46,7 +46,7 @@ secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 loader_token = os.getenv("SVC_LOADER_TOKEN")
 
 # In some testing contexts, we pass in the DynamoDB URL
-dynamodb_url = os.getenv("DYNAMODB_URL", "")
+dynamodb_url = os.getenv("DYNAMODB_URL", "http://dynamodb-local:8000")
 
 if dynamodb_url == "":
     dynamodb = boto3.resource(
@@ -105,7 +105,9 @@ def read():
     table_id = objtype + "_id"
     table = dynamodb.Table(table_name)
     response = table.query(
-        Select="ALL_ATTRIBUTES", KeyConditionExpression=Key(table_id).eq(objkey)
+        Select="ALL_\
+            ATTRIBUTES",
+        KeyConditionExpression=Key(table_id).eq(objkey)
     )
     return response
 
@@ -171,7 +173,10 @@ def load():
     if not load_auth(headers):
         return Response(
             json.dumps(
-                {"http_status_code": 401, "reason": "Invalid authorization for /load"}
+                {
+                    "http_status_code": 401,
+                    "reason": "Invalid authorization for /load"
+                }
             ),
             status=401,
             mimetype="application/json",

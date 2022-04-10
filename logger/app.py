@@ -37,7 +37,9 @@ db = {
     "endpoint": ["read", "write", "delete", "update"],
 }
 
-db_logger = {"name": "http://logger:30003/api/v1/logger", "endpoint": ["create_log"]}
+db_logger = {
+    "name": "http://logger:30003/api/v1/logger",
+    "endpoint": ["create_log"]}
 
 # db = {}
 
@@ -83,7 +85,8 @@ def readiness():
 def create_log():
     """
     Logger service to log every event happening in the marketplace application.
-    Each log will have a user_id, service_name, operation_name, status_code and operation time
+    Each log will have a user_id, service_name, operation_name,
+    status_code and operation time
     """
     print("Test check inside the create event")
     try:
@@ -115,6 +118,7 @@ def create_log():
         mimetype="application/json",
     )
 
+
 @bp.route("/read_log/<user_id>", methods=["GET"])
 def read_log(user_id):
     """
@@ -132,7 +136,8 @@ def read_log(user_id):
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
-  
+
+
 @bp.after_request
 def add_header(response):
     """

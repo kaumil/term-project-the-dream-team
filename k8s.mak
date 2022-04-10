@@ -234,13 +234,6 @@ reinstate: istio
 showcontext:
 	$(KC) config get-contexts
 
-# Run the loader, rebuilding if necessary, starting DynamDB if necessary, building ConfigMaps
-loader: dynamodb-init $(LOG_DIR)/loader.repo.log cluster/loader.yaml
-	$(KC) -n $(APP_NS) delete --ignore-not-found=true jobs/cmpt756loader
-	tools/build-configmap.sh gatling/resources/users.csv cluster/users-header.yaml | kubectl -n $(APP_NS) apply -f -
-	tools/build-configmap.sh gatling/resources/transactions.csv cluster/transaction-header.yaml | kubectl -n $(APP_NS) apply -f -
-	$(KC) -n $(APP_NS) apply -f cluster/loader.yaml | tee $(LOG_DIR)/loader.log
-
 # --- dynamodb-init: set up our DynamoDB tables
 #
 dynamodb-init: $(LOG_DIR)/dynamodb-init.log
