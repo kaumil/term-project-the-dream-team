@@ -304,7 +304,7 @@ def delete_image(image_id):
         "Image Deleted",
         status=HTTPStatus.OK,
         mimetype="application/json",
-    ) 
+    )
 
 
 @bp.after_request

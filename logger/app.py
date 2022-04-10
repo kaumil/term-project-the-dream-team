@@ -85,7 +85,7 @@ def readiness():
 def create_log():
     """
     Logger service to log every event happening in the marketplace application.
-    Each log will have a user_id, service_name, operation_name, 
+    Each log will have a user_id, service_name, operation_name,
     status_code and operation time
     """
     print("Test check inside the create event")
