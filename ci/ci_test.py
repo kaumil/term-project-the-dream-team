@@ -53,12 +53,7 @@ def parse_args():
         "logger_address", help="DNS name or IP address of logger service."
     )
     argp.add_argument("logger_port", type=int, help="Port number of logger service.")
-    argp.add_argument(
-        "table_suffix",
-        help="Suffix to add to table names (not including leading "
-        "'-').  If suffix is 'scp756-2022', the music table "
-        "will be 'Music-scp756-2022'.",
-    )
+    
     args = argp.parse_args()
     args.users_url = "http://{}:{}/api/v1/users/".format(
         args.users_address, args.users_port

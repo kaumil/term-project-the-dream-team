@@ -74,7 +74,7 @@ services:
       - images
       - transaction
       - logger
-    build: ./v1
+    build: .
     image: ci_test
     container_name: test
     environment:
