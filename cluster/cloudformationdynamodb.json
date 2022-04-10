@@ -4,66 +4,66 @@
     "tableUser": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": "user",
+        "TableName": "users",
         "AttributeDefinitions": [
           {
-            "AttributeName": "user_id",
+            "AttributeName": "users_id",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "user_id",
+            "AttributeName": "users_id",
             "KeyType": "HASH"
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "5",
-          "WriteCapacityUnits": "5"
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
         }
       }
     },
     "tableImages": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": "image",
+        "TableName": "images",
         "AttributeDefinitions": [
           {
-            "AttributeName": "image_id",
+            "AttributeName": "images_id",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "image_id",
+            "AttributeName": "images_id",
             "KeyType": "HASH"
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "5",
-          "WriteCapacityUnits": "5"
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
         }
       }
     },
-    "tableSales": {
+    "tableTransaction": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
-        "TableName": "sales",
+        "TableName": "transactions",
         "AttributeDefinitions": [
           {
-            "AttributeName": "transaction_id",
+            "AttributeName": "transactions_id",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "transaction_id",
+            "AttributeName": "transactions_id",
             "KeyType": "HASH"
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "5",
-          "WriteCapacityUnits": "5"
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
         }
       }
     },
@@ -73,22 +73,22 @@
         "TableName": "logger",
         "AttributeDefinitions": [
           {
-            "AttributeName": "user_id",
+            "AttributeName": "logger_id",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "user_id",
+            "AttributeName": "logger_id",
             "KeyType": "HASH"
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "5",
-          "WriteCapacityUnits": "5"
+          "ReadCapacityUnits": "600",
+          "WriteCapacityUnits": "600"
         }
       }
     }
   },
-  "Description": "DynamoDB tables for ZZ-AWS-ACCESS-KEY-ID"
+  "Description": "DynamoDB tables for AKIA6JJDBYOM77Q5MGMZ"
 }
