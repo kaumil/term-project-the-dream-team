@@ -207,6 +207,141 @@ def read_transaction(transaction_id):
     )
 
 
+@bp.route("/change_transaction/<transaction_id>", methods=["PUT"])
+def update_transaction(transaction_id):
+    """
+    Function to update transaction
+
+    Args:
+        transaction_id (str): Transaction id
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    service_name = "transactions"
+    operation_name = "change_transaction"
+    buyer_id = None
+
+    try:
+        content = request.get_json()
+        buyer_id = content["buyer_id"]
+
+    except Exception as e:
+
+        status_code = "500"
+        message = repr(e)
+        json.dumps({"message": message, "status_code": status_code})
+        log_writer(buyer_id, service_name, operation_name, status_code, message)
+
+        return Response(
+            repr(e),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            mimetype="application/json",
+        )
+        # return json.dumps({"message": "error reading arguments"})
+
+    payload = {"objtype": "transactions", "objkey": transaction_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    response = requests.get(
+        url,
+        params=payload,
+    )
+
+    transaction_data = response.json()
+    # Changing image ownership
+
+    image_id = transaction_data["Items"][0]["images_id"]
+    image_payload = {"objtype": "images", "objkey": image_id}
+    imagedb_url = db["name"] + "/" + db["endpoint"][0]
+    requests.put(
+        imagedb_url,
+        params=image_payload,
+        json={"user_id": buyer_id},
+    )
+
+    # Updating the transaction
+    url = db["name"] + "/" + db["endpoint"][3]
+    now = datetime.now()
+    response = requests.put(
+        url,
+        params=payload,
+        json={
+            "buyer_id": buyer_id,
+            "sold_on": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        },
+    )
+
+    # logging the event
+    response.json()
+
+    # calling the logger function to write into logger table
+    log_writer(buyer_id, service_name, operation_name, "200", "transaction updated")
+
+    return Response(
+        "Transaction Updated",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+
+@bp.route("/delete_transaction/<transaction_id>", methods=["DELETE"])
+def delete_transaction(transaction_id):
+    """
+    Function to delete transaction
+
+    Args:
+        transaction_id (str): Transaction id
+
+    Returns:
+        JSON: Response JSON
+    """
+    # headers = request.headers
+    # check header here
+    # if "Authorization" not in headers:
+    #     return Response(
+    #         json.dumps({"error": "missing auth"}),
+    #         status=401,
+    #         mimetype="application/json",
+    #     )
+
+    service_name = "transactions"
+    operation_name = "delete_transaction"
+    buyer_id = None
+
+    payload = {"objtype": "transactions", "objkey": transaction_id}
+    url = db["name"] + "/" + db["endpoint"][0]
+    response = requests.get(
+        url,
+        params=payload,
+    )
+
+    buyer_id = response.json()["Items"][0]["buyer_id"]
+
+    url = db["name"] + "/" + db["endpoint"][2]
+    response = requests.delete(
+        url,
+        params={"objtype": "transactions", "objkey": transaction_id},
+    )
+
+    # calling the logger function to write into logger table
+    log_writer(buyer_id, service_name, operation_name, "200", "transaction deleted")
+
+    return Response(
+        "Transaction Deleted",
+        status=HTTPStatus.OK,
+        mimetype="application/json",
+    )
+
+  
 @bp.after_request
 def add_header(response):
     """
