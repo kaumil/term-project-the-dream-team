@@ -115,7 +115,6 @@ def create_log():
         mimetype="application/json",
     )
 
-
 @bp.route("/read_log/<user_id>", methods=["GET"])
 def read_log(user_id):
     """
@@ -133,8 +132,7 @@ def read_log(user_id):
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
-
-
+  
 @bp.after_request
 def add_header(response):
     """
