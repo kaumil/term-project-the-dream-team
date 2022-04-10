@@ -8,7 +8,7 @@ Python  API for the music service.
 import requests
 
 
-class Transaction:
+class Transaction():
     """Python API for the images service.
 
     Handles the details of formatting HTTP requests and decoding

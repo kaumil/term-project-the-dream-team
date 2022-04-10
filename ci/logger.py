@@ -8,7 +8,7 @@ Python  API for the music service.
 import requests
 
 
-class Logger:
+class Logger():
     """Python API for the images service.
 
     Handles the details of formatting HTTP requests and decoding

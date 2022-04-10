@@ -8,7 +8,7 @@ Python  API for the music service.
 import requests
 
 
-class Users:
+class Users():
     """Python API for the users service.
 
     Handles the details of formatting HTTP requests and decoding
