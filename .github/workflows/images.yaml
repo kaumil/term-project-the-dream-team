@@ -2,7 +2,7 @@ name: CI Images Test
 
 on:
   push:
-    branches: [cibranch]
+    branches: [dev]
 
 jobs:
   build:

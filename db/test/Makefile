@@ -1,6 +1,6 @@
 # Makefile for test of Music service (S2)
 
-SERVER=`docker container inspect images --format '{{.NetworkSettings.IPAddress}}'`
+SERVER=`docker container inspect db --format '{{.NetworkSettings.IPAddress}}'`
 
 build-db_test:
 	docker image build -f Dockerfile -t db_test .

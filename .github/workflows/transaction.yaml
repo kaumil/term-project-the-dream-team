@@ -2,7 +2,7 @@ name: CI Transaction Test
 
 on:
   push:
-    branches: [cibranch]
+    branches: [dev]
 
 jobs:
   build:
