@@ -3,9 +3,6 @@
 # Instantiate the setup of eks and deploy a stack on aws
 # This script creates the iniial namespace and all the necessary setup
 
-echo "Starting the EKS cluster..."
-make -f eks.mak start
-
 echo "Creating the context and namespace..."
 kubectl config use-context aws756marketplace
 kubectl create ns c756marketplacens
@@ -20,4 +17,4 @@ echo "Building images with cri..."
 make -f k8s.mak cri
 
 echo "Deploying the services..."
-make -f k8s.mak gw db users images transaction logger
+make -f k8s.mak provision
