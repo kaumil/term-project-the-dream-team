@@ -46,7 +46,7 @@ secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 loader_token = os.getenv("SVC_LOADER_TOKEN")
 
 # In some testing contexts, we pass in the DynamoDB URL
-dynamodb_url = os.getenv("DYNAMODB_URL", "")
+dynamodb_url = os.getenv("DYNAMODB_URL", "http://dynamodb-local:8000")
 
 if dynamodb_url == "":
     dynamodb = boto3.resource(

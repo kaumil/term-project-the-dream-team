@@ -103,7 +103,7 @@ def get_env_vars(args):
     args.access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
     args.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     args.loader_token = os.getenv("SVC_LOADER_TOKEN")
-    args.dynamodb_url = os.getenv("DYNAMODB_URL")
+    args.dynamodb_url = "http://dynamodb-local:8000"
 
 
 def setup(args):
