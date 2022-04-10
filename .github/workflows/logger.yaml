@@ -1,0 +1,45 @@
+name: CI Logger Test
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Determine the canonical owner
+        run: |
+          tools/find-canonical-owner.sh $GITHUB_REPOSITORY ${{ github.repository_owner }} >> $GITHUB_ENV
+
+      - name: Instantiate template files based on the canonical owner
+        run: |
+          sed -e "s/ZZ-REG-ID=.*/ZZ-REG-ID=krp30/" cluster/tpl-vars-blank.txt > cluster/tpl-vars.txt
+          make -f k8s-tpl.mak templates
+
+      - name: Build server
+        run: |
+          cd logger/
+          make build
+          cd ../
+
+      - name: Build test client
+        run: |
+          cd logger/test/
+          make build-logger_test
+          cd ../../
+
+      - name: Run server
+        # The success or failure of the job is determined by the
+        # return code from this last step
+        run: |
+          cd logger/
+          make run
+          # Give time for server to start up
+          sleep 5
+          cd test/
+          # The actual test!
+          make run-logger_test
