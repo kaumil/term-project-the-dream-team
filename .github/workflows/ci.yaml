@@ -17,7 +17,7 @@ jobs:
 
       - name: Instantiate template files based on the canonical owner
         run: |
-          sed -e "s/ZZ-REG-ID=.*/ZZ-REG-ID=${{ env.canonical-owner }}/" cluster/tpl-vars-blank.txt > cluster/tpl-vars.txt
+          sed -e "s/ZZ-REG-ID=.*/ZZ-REG-ID=krp30/" cluster/tpl-vars-blank.txt > cluster/tpl-vars.txt
           make -f k8s-tpl.mak templates
 
       - name: Build server
