@@ -312,8 +312,7 @@ def delete_image(image_id):
         status=HTTPStatus.OK,
         mimetype="application/json",
     )
-
-
+  
 @bp.after_request
 def add_header(response):
     """
