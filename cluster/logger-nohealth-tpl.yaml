@@ -44,7 +44,7 @@ metadata:
     app: logger
     version: v1
 spec:
-  replicas: 1
+  replicas: 5
   selector:
     matchLabels:
       app: logger
