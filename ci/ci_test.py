@@ -150,7 +150,7 @@ def run_test(args):
 
     """
 
-    userv = users.User(args.users_url)
+    userv = users.Users(args.users_url)
     imgv = images.Images(args.images_url)
     transv = transaction.Transaction(args.transaction_url)
     logv = logger.Logger(args.logger_url)
