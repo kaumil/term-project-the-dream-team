@@ -48,7 +48,7 @@ def create_tables(
     """
     dynamodb = boto3.resource(
         "dynamodb",
-        endpoint_url="http://dynamodb-local:8000",
+        endpoint_url=url,
         region_name=region,
         aws_access_key_id=access_key_id,
         aws_secret_access_key=secret_access_key,

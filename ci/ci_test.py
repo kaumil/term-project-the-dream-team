@@ -11,6 +11,7 @@ import argparse
 from email import message
 import os
 import sys
+from time import sleep
 
 # Installed packages
 
@@ -103,7 +104,7 @@ def get_env_vars(args):
     args.access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
     args.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     args.loader_token = os.getenv("SVC_LOADER_TOKEN")
-    args.dynamodb_url = "http://dynamodb-local:8000"
+    args.dynamodb_url = os.getenv("DYNAMODB_URL")
 
 
 def setup(args):
@@ -206,6 +207,7 @@ if __name__ == "__main__":
     args = parse_args()
     get_env_vars(args)
     setup(args)
+    sleep(20)
     trc = run_test(args)
     if trc != 200:
         sys.exit(1)

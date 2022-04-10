@@ -22,7 +22,7 @@ services:
     environment:
       AWS_REGION: 'us-west-2'
       AWS_ACCESS_KEY_ID: 'DUMMY_KEY_ID'
-      AWS_SECRET_ACCESS_KEY: 'DUMMY_ACCESS_ KEY'
+      AWS_SECRET_ACCESS_KEY: 'DUMMY_ACCESS_KEY'
       SVC_LOADER_TOKEN: 'DUMMY_LOADER_TOKEN'
       DYNAMODB_URL: 'http://dynamodb-local:8000'
   users:
