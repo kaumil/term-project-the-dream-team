@@ -24,11 +24,13 @@ jobs:
         run: |
           cd transaction/
           make build
+          cd ../
 
       - name: Run server
         # The success or failure of the job is determined by the
         # return code from this last step
         run: |
+          cd transaction/
           make run
           # Give time for server to start up
           sleep 5
