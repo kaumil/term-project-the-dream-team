@@ -188,19 +188,7 @@ def run_test(args):
         sys.exit(1)
     trc3 = transv.read(transaction_id)
 
-    users_id, service_name, operation_name, status_code, message = (
-        "567dce7f-b7b4-4efd-b75e-2b98592abe6d",
-        "image",
-        "add",
-        "200",
-        "adding image",
-    )
-    trc = logv.create(users_id, service_name, operation_name, status_code, message)
-    if trc != 200:
-        sys.exit(1)
-    trc4 = logv.read(users_id)
-
-    return (trc1 == 200) & (trc2 == 200) & (trc3 == 200) & (trc4 == 200)
+    return (trc1 == 200) & (trc2 == 200) & (trc3 == 200)
 
 
 if __name__ == "__main__":
