@@ -188,7 +188,7 @@ def run_test(args):
         sys.exit(1)
     trc3 = transv.read(transaction_id)
 
-    return True
+    return 200
 
 
 if __name__ == "__main__":
