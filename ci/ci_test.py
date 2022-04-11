@@ -167,7 +167,7 @@ def run_test(args):
     trc = userv.create(users_id, username, password, role, disabled)
     if trc != 200:
         sys.exit(1)
-    trc1, ra, rs = userv.read(users_id)
+    trc1 = userv.read(users_id)
 
     images_id, users_id = (
         "c97dee22-7270-4fb2-ad25-8386b05d8dc2",
@@ -200,7 +200,7 @@ def run_test(args):
         sys.exit(1)
     trc4 = logv.read(users_id)
 
-    return trc
+    return (trc1 == 200) & (trc2 == 200) & (trc3 == 200) & (trc4 == 200)
 
 
 if __name__ == "__main__":

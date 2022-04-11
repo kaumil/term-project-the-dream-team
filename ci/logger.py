@@ -40,6 +40,6 @@ class Logger():
     def read(self, users_id):
         r = requests.get(self._url + "read_log/" + users_id)
         if r.status_code != 200:
-            return r.status_code, None, None
+            return r.status_code
 
         return r.status_code
