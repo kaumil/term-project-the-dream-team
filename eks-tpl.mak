@@ -27,7 +27,7 @@ EKS_CTX=aws756marketplace
 
 
 NGROUP=worker-nodes
-NTYPE=t3.medium
+NTYPE=m5.2xlarge
 REGION=ZZ-AWS-REGION
 KVER=1.21
 

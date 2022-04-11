@@ -1,6 +1,6 @@
 """
 SFU CMPT 756
-Sample application---database service.
+Application database service
 """
 
 # Standard library modules
@@ -46,7 +46,7 @@ secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 loader_token = os.getenv("SVC_LOADER_TOKEN")
 
 # In some testing contexts, we pass in the DynamoDB URL
-dynamodb_url = os.getenv("DYNAMODB_URL", "http://dynamodb-local:8000")
+dynamodb_url = os.getenv("DYNAMODB_URL", "")
 
 if dynamodb_url == "":
     dynamodb = boto3.resource(
@@ -76,7 +76,7 @@ def update():
     content = request.get_json()
     objtype = urllib.parse.unquote_plus(request.args.get("objtype"))
     objkey = urllib.parse.unquote_plus(request.args.get("objkey"))
-    table_name = objtype.capitalize()
+    table_name = objtype
     table_id = objtype + "_id"
     table = dynamodb.Table(table_name)
     expression = "SET "
@@ -101,13 +101,11 @@ def read():
     # check header here
     objtype = urllib.parse.unquote_plus(request.args.get("objtype"))
     objkey = urllib.parse.unquote_plus(request.args.get("objkey"))
-    table_name = objtype.capitalize()
+    table_name = objtype
     table_id = objtype + "_id"
     table = dynamodb.Table(table_name)
     response = table.query(
-        Select="ALL_\
-            ATTRIBUTES",
-        KeyConditionExpression=Key(table_id).eq(objkey)
+        Select="ALL_ATTRIBUTES", KeyConditionExpression=Key(table_id).eq(objkey)
     )
     return response
 
@@ -117,15 +115,19 @@ def write():
     headers = request.headers  # noqa: F841
     # check header here
     content = request.get_json()
-    table_name = content["objtype"].capitalize()
+
+    table_name = content["objtype"]
     objtype = content["objtype"]
     table_id = objtype + "_id"
     payload = {table_id: str(uuid.uuid4())}
+
     del content["objtype"]
     for k in content.keys():
         payload[k] = content[k]
     table = dynamodb.Table(table_name)
+
     response = table.put_item(Item=payload)
+
     returnval = ""
     if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
         returnval = {"message": "fail"}
@@ -173,10 +175,7 @@ def load():
     if not load_auth(headers):
         return Response(
             json.dumps(
-                {
-                    "http_status_code": 401,
-                    "reason": "Invalid authorization for /load"
-                }
+                {"http_status_code": 401, "reason": "Invalid authorization for /load"}
             ),
             status=401,
             mimetype="application/json",
@@ -185,7 +184,7 @@ def load():
     content = request.get_json()
     if "uuid" not in content:
         return json.dumps({"http_status_code": 400, "reason": "Missing uuid"})
-    table_name = content["objtype"].capitalize()
+    table_name = content["objtype"]
     objtype = content["objtype"]
     table_id = objtype + "_id"
     payload = {table_id: content["uuid"]}
@@ -207,7 +206,7 @@ def delete():
     # check header here
     objtype = urllib.parse.unquote_plus(request.args.get("objtype"))
     objkey = urllib.parse.unquote_plus(request.args.get("objkey"))
-    table_name = objtype.capitalize()
+    table_name = objtype
     table_id = objtype + "_id"
     table = dynamodb.Table(table_name)
     response = table.delete_item(Key={table_id: objkey})

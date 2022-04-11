@@ -5,9 +5,9 @@ metadata:
 spec:
   externalTrafficPolicy: Cluster
   ports:
-  - name: web
-    port: 9090
-    targetPort: 9090
+    - name: web
+      port: 9090
+      targetPort: 9090
   selector:
     prometheus: c756-kube-prometheus-stack-prometheus
   type: LoadBalancer
@@ -20,8 +20,8 @@ spec:
   externalTrafficPolicy: Cluster
   type: LoadBalancer
   ports:
-  - name: grafana
-    port: 3000
-    targetPort: 3000
+    - name: grafana
+      port: 3000
+      targetPort: 3000
   selector:
     app.kubernetes.io/name: grafana
