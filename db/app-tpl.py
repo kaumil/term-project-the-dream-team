@@ -105,7 +105,8 @@ def read():
     table_id = objtype + "_id"
     table = dynamodb.Table(table_name)
     response = table.query(
-        Select="ALL_ATTRIBUTES", KeyConditionExpression=Key(table_id).eq(objkey)
+        Select="ALL_ATTRIBUTES",
+        KeyConditionExpression=Key(table_id).eq(objkey)
     )
     return response
 
@@ -175,7 +176,10 @@ def load():
     if not load_auth(headers):
         return Response(
             json.dumps(
-                {"http_status_code": 401, "reason": "Invalid authorization for /load"}
+                {
+                    "http_status_code": 401,
+                    "reason": "Invalid authorization for /load"
+                }
             ),
             status=401,
             mimetype="application/json",
