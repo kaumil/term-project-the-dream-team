@@ -39,7 +39,4 @@ class Users():
 
     def read(self, users_id):
         r = requests.get(self._url + "get_user/" + users_id)
-        if r.status_code != 200:
-            return r.status_code
-
         return r.status_code
