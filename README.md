@@ -22,4 +22,15 @@ This application is a marketplace for the sale and purchase of Non-Fungible Toke
 
 ## Setup and Installation
 
-Todo by Kaumil.
+- After cloning the repository, access the tool container via the command: `tools/shell.sh`
+- Provision the EKS cluster using the command: `make -f eks.mak start`
+- Install Istio and configure the other services using the command `tools/setup.sh`
+- The cluster is now setup. Access Grafana via the command `make -f k8s.mak grafana-url`
+- Prometheus can be accessed using the command `make -f k8s.mak prometheus-url`
+- Kiali can be accessed using the command `make -f k8s.mak kiali-url`
+- Gatling tests can be performed in the following manner:
+    - To perform gatling user test scenario use the command `tools/gatling-user-test.sh $(NUMBER_OF_USERS)`
+    - To perform gatling image test scenario use the command `tools/gatling-user-test.sh $(NUMBER_OF_USERS)`
+    - To perform gatling transaction test scenario use the command `tools/gatling-user-test.sh $(NUMBER_OF_USERS)`
+- The K9s service can be accessed via the command `k9s`
+
