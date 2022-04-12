@@ -23,6 +23,7 @@ This application is a marketplace for the sale and purchase of Non-Fungible Toke
 ## Setup and Installation
 
 - After cloning the repository, access the tool container via the command: `tools/shell.sh`
+- Setup the templates using the command: `make -f k8s-tpl.mak templates`
 - Provision the EKS cluster using the command: `make -f eks.mak start`
 - Install Istio and configure the other services using the command `tools/setup.sh`
 - The cluster is now setup. Access Grafana via the command `make -f k8s.mak grafana-url`
